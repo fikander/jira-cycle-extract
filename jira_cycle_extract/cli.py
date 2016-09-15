@@ -201,14 +201,18 @@ def main():
     trials = args.charts_burnup_forecast_trials or 1000
 
     # TODO - parameterise historical throughput
-    burnup_forecast_data = q.burnup_forecast(
-        cfd_data,
-        daily_throughput_data,
-        trials=trials,
-        target=target,
-        backlog_column=backlog_column,
-        done_column=done_column,
-        percentiles=quantiles)
+    try:
+        burnup_forecast_data = q.burnup_forecast(
+            cfd_data,
+            daily_throughput_data,
+            trials=trials,
+            target=target,
+            backlog_column=backlog_column,
+            done_column=done_column,
+            percentiles=quantiles)
+    except Exception as e:
+        print("Warning: Failed to calculate burnup forecast")
+        burnup_forecast_data = None
 
     # Write files
 
@@ -279,7 +283,7 @@ def main():
         else:
             daily_throughput_data.to_csv(args.throughput, header=True)
 
-    if args.burnup_forecast:
+    if args.burnup_forecast and burnup_forecast_data is not None:
         print("Writing burnup forecast data to", args.burnup_forecast)
         if output_format == 'json':
             burnup_forecast_data.to_json(args.burnup_forecast, date_format='iso')
