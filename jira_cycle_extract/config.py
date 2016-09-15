@@ -59,25 +59,26 @@ def config_to_options(data):
 
     # Parse Queries (list of Criteria) and/or a single Criteria
 
+    def _parse_query_config(c):
+        return {
+            'value': c.get('value', None),
+            'project': c.get('project', None),
+            'issue_types': force_list(c.get('issue types', [])),
+            'valid_resolutions': force_list(c.get('valid resolutions', [])),
+            'jql_filter': c.get('jql', None)
+        }
+
     if 'queries' in config:
         options['settings']['query_attribute'] = config['queries'].get('attribute', None)
         for query in config['queries']['criteria']:
-            options['settings']['queries'].append({
-                'value': query.get('value', None),
-                'project': query.get('project', None),
-                'issue_types': force_list(query.get('issue types', [])),
-                'valid_resolutions': force_list(query.get('valid resolutions', [])),
-                'jql_filter': query.get('jql', None)
-            })
+            options['settings']['queries'].append(
+                _parse_query_config(query)
+            )
 
     if 'criteria' in config:
-        options['settings']['queries'].append({
-            'value': config['criteria'].get('value', None),
-            'project': config['criteria'].get('project', None),
-            'issue_types': force_list(config['criteria'].get('issue types', [])),
-            'valid_resolutions': force_list(config['criteria'].get('valid resolutions', [])),
-            'jql_filter': config['criteria'].get('jql', None)
-        })
+        options['settings']['queries'].append(
+            _parse_query_config(config['criteria'])
+        )
 
     if len(options['settings']['queries']) == 0:
         raise ConfigError("No `Criteria` or `Queries` section found")
